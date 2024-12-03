@@ -6,6 +6,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "sdkVersion": "52.0.0",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -30,6 +31,7 @@
       "eas": {
         "projectId": "e7194f46-05de-4910-820c-349e93c558ac"
       }
-    }
+    },
+    "newArchEnabled": true
   }
 }
