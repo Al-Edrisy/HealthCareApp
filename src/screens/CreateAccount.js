@@ -1,234 +1,181 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Text, ActivityIndicator } from 'react-native';
-import { TextInput, Button, HelperText, IconButton } from 'react-native-paper';
-import CountryPicker from 'react-native-country-picker-modal';
-import { createUserWithEmail, googleSignIn } from '../constants/FireBaseConfig';
+import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { CountryPicker } from 'react-native-country-picker-modal';
+import { DateTimePickerModal } from 'react-native-modal-datetime-picker';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../constants/FireBaseConfig'; // Import Firebase auth
 
+// CreateAccount Component
 const CreateAccount = ({ navigation }) => {
-    // State management
-    const [fullName, setFullName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [mobileNumber, setMobileNumber] = useState('');
-    const [birthDate, setBirthDate] = useState({ day: '', month: '', year: '' });
-    const [countryCode, setCountryCode] = useState('US');
-    const [phoneCode, setPhoneCode] = useState('1');
-    const [errors, setErrors] = useState({});
-    const [secureTextEntry, setSecureTextEntry] = useState(true);
-    const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [phoneCode, setPhoneCode] = useState('');
+  const [countryCode, setCountryCode] = useState('');
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  
+  // Validate input fields
+  const validateForm = () => {
+    if (!email || !password || !confirmPassword || !mobileNumber || !dateOfBirth) {
+      Alert.alert('Validation Error', 'All fields are required!');
+      return false;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert('Validation Error', 'Passwords do not match!');
+      return false;
+    }
+    return true;
+  };
 
-    // Validation logic
-    const validateFields = () => {
-        const newErrors = {};
-        if (!fullName) newErrors.fullName = 'Full Name is required';
-        if (!email || !/^\S+@\S+\.\S+$/.test(email)) newErrors.email = 'Enter a valid email address';
-        if (!password || password.length < 8) newErrors.password = 'Password must be at least 8 characters';
-        if (password !== confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
-        if (!mobileNumber) newErrors.mobileNumber = 'Enter a valid mobile number';
-        if (!birthDate.day || !birthDate.month || !birthDate.year) newErrors.dateOfBirth = 'Date of Birth is required';
+  // Handle account creation
+  const handleCreateAccount = async () => {
+    if (validateForm()) {
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        console.log('User created:', userCredential);
+        
+        // Proceed to next screen with user details
+        navigation.navigate('UserDataScreen', { userId: userCredential.user.uid });
+      } catch (error) {
+        console.error('Error creating user:', error);
+        Alert.alert('Error', error.message);
+      }
+    }
+  };
 
-        const birthDateObj = new Date(`${birthDate.year}-${birthDate.month}-${birthDate.day}`);
-        const today = new Date();
-        if (birthDateObj >= today) newErrors.dateOfBirth = 'Date of Birth must be in the past';
+  const onCountrySelect = (country) => {
+    setCountryCode(country.cca2);
+    setPhoneCode(country.callingCode[0]);
+  };
 
-        if (birthDate.day === '0' || birthDate.day > 31) newErrors.dateOfBirth = 'Invalid day';
-        if (birthDate.month === '0' || birthDate.month > 12) newErrors.dateOfBirth = 'Invalid month';
+  // Show and hide the date picker
+  const showDatePicker = () => setDatePickerVisibility(true);
+  const hideDatePicker = () => setDatePickerVisibility(false);
+  
+  const handleConfirmDate = (date) => {
+    setDateOfBirth(date.toLocaleDateString());
+    hideDatePicker();
+  };
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
+  return (
+    <View style={styles.container}>
+      <Text style={styles.header}>Create Account</Text>
 
-    // Account creation handler
-    const handleCreateAccount = async () => {
-        if (validateFields()) {
-            setLoading(true);
-            setErrors({});
-            try {
-                await createUserWithEmail(email, password, {
-                    fullName,
-                    mobileNumber: `+${phoneCode}${mobileNumber}`,
-                    birthDate: `${birthDate.day}/${birthDate.month}/${birthDate.year}`,
-                });
-                navigation.navigate('HomeScreen');
-            } catch (error) {
-                setErrors((prev) => ({ ...prev, email: 'Email is already in use or invalid' }));
-            } finally {
-                setLoading(false);
-            }
-        }
-    };
+      {/* Email */}
+      <TextInput
+        value={email}
+        onChangeText={setEmail}
+        placeholder="Email"
+        keyboardType="email-address"
+        style={styles.input}
+      />
 
-    // Google Sign-In handler
-    const handleGoogleSignIn = async () => {
-        setLoading(true);
-        try {
-            await googleSignIn();
-            navigation.navigate('HomeScreen');
-        } catch (error) {
-            setErrors((prev) => ({ ...prev, google: 'Google Sign-In failed. Please try again.' }));
-        } finally {
-            setLoading(false);
-        }
-    };
+      {/* Password */}
+      <TextInput
+        value={password}
+        onChangeText={setPassword}
+        placeholder="Password"
+        secureTextEntry
+        style={styles.input}
+      />
 
-    // Country selection handler
-    const onCountrySelect = (country) => {
-        setCountryCode(country.cca2);
-        setPhoneCode(country.callingCode[0]);
-    };
+      {/* Confirm Password */}
+      <TextInput
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        placeholder="Confirm Password"
+        secureTextEntry
+        style={styles.input}
+      />
 
-    return (
-        <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-            <View style={styles.container}>
-                <Text style={styles.title}>Create New Account</Text>
+      {/* Phone Number */}
+      <View style={styles.phoneContainer}>
+        <CountryPicker
+          withFlag
+          withCallingCode
+          countryCode={countryCode}
+          onSelect={onCountrySelect}
+          containerButtonStyle={styles.countryPickerButton}
+        />
+        <Text style={styles.phoneCode}>+{phoneCode}</Text>
+        <TextInput
+          value={mobileNumber}
+          onChangeText={setMobileNumber}
+          placeholder="Phone Number"
+          keyboardType="phone-pad"
+          style={styles.input}
+        />
+      </View>
 
-                {/* Full Name Input */}
-                <TextInput
-                    label="Full Name"
-                    value={fullName}
-                    onChangeText={(text) => {
-                        setFullName(text);
-                        setErrors((prev) => ({ ...prev, fullName: null }));
-                    }}
-                    mode="outlined"
-                    style={styles.input}
-                    error={!!errors.fullName}
-                />
-                {errors.fullName && <HelperText type="error">{errors.fullName}</HelperText>}
+      {/* Date of Birth */}
+      <TouchableOpacity onPress={showDatePicker} style={styles.datePickerButton}>
+        <Text style={styles.dateText}>
+          {dateOfBirth ? dateOfBirth : 'Select Date of Birth'}
+        </Text>
+      </TouchableOpacity>
 
-                {/* Email Input */}
-                <TextInput
-                    label="Email"
-                    value={email}
-                    onChangeText={(text) => {
-                        setEmail(text);
-                        setErrors((prev) => ({ ...prev, email: null }));
-                    }}
-                    mode="outlined"
-                    style={styles.input}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    error={!!errors.email}
-                />
-                {errors.email && <HelperText type="error">{errors.email}</HelperText>}
+      {/* Date Picker Modal */}
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="date"
+        onConfirm={handleConfirmDate}
+        onCancel={hideDatePicker}
+      />
 
-                {/* Password Input */}
-                <TextInput
-                    label="Password"
-                    secureTextEntry={secureTextEntry}
-                    value={password}
-                    onChangeText={(text) => {
-                        setPassword(text);
-                        setErrors((prev) => ({ ...prev, password: null }));
-                    }}
-                    mode="outlined"
-                    style={styles.input}
-                    error={!!errors.password}
-                />
-                {errors.password && <HelperText type="error">{errors.password}</HelperText>}
+      {/* Create Account Button */}
+      <Button title="Create Account" onPress={handleCreateAccount} />
 
-                {/* Confirm Password Input */}
-                <TextInput
-                    label="Confirm Password"
-                    secureTextEntry={secureTextEntry}
-                    value={confirmPassword}
-                    onChangeText={(text) => {
-                        setConfirmPassword(text);
-                        setErrors((prev) => ({ ...prev, confirmPassword: null }));
-                    }}
-                    mode="outlined"
-                    style={styles.input}
-                    error={!!errors.confirmPassword}
-                />
-                {errors.confirmPassword && <HelperText type="error">{errors.confirmPassword}</HelperText>}
-
-                {/* Mobile Number with Country Picker */}
-                <View style={styles.phoneContainer}>
-                    <CountryPicker
-                        withFilter
-                        withFlag
-                        withCallingCode
-                        countryCode={countryCode}
-                        onSelect={onCountrySelect}
-                    />
-                    <Text style={styles.phoneCode}>+{phoneCode}</Text>
-                    <TextInput
-                        value={mobileNumber}
-                        onChangeText={(text) => {
-                            setMobileNumber(text);
-                            setErrors((prev) => ({ ...prev, mobileNumber: null }));
-                        }}
-                        placeholder="Phone Number"
-                        keyboardType="phone-pad"
-                        style={styles.phoneInput}
-                        error={!!errors.mobileNumber}
-                    />
-                </View>
-                {errors.mobileNumber && <HelperText type="error">{errors.mobileNumber}</HelperText>}
-
-                {/* Date of Birth Inputs */}
-                <View style={styles.dateOfBirthContainer}>
-                    <TextInput
-                        label="Day"
-                        value={birthDate.day}
-                        onChangeText={(text) => setBirthDate({ ...birthDate, day: text })}
-                        mode="outlined"
-                        style={styles.dateInput}
-                        keyboardType="numeric"
-                    />
-                    <TextInput
-                        label="Month"
-                        value={birthDate.month}
-                        onChangeText={(text) => setBirthDate({ ...birthDate, month: text })}
-                        mode="outlined"
-                        style={styles.dateInput}
-                        keyboardType="numeric"
-                    />
-                    <TextInput
-                        label="Year"
-                        value={birthDate.year}
-                        onChangeText={(text) => setBirthDate({ ...birthDate, year: text })}
-                        mode="outlined"
-                        style={styles.dateInput}
-                        keyboardType="numeric"
-                    />
-                </View>
-                {errors.dateOfBirth && <HelperText type="error">{errors.dateOfBirth}</HelperText>}
-
-                {/* Sign-Up Button */}
-                <Button
-                    mode="contained"
-                    onPress={handleCreateAccount}
-                    style={styles.loginButton}
-                    loading={loading}
-                    disabled={loading}
-                >
-                    {loading ? 'Creating Account...' : 'Sign Up'}
-                </Button>
-
-                {/* Error Message for Google Sign-In */}
-                {errors.google && <HelperText type="error">{errors.google}</HelperText>}
-
-                {/* Google Sign-In Button */}
-                <Text style={styles.orText}>or sign up with</Text>
-                <View style={styles.socialContainer}>
-                    <IconButton icon="google" size={30} style={styles.socialIcon} onPress={handleGoogleSignIn} />
-                </View>
-
-                {/* Navigation to Login */}
-                <TouchableOpacity onPress={() => navigation.navigate('LoginScreen')}>
-                    <Text style={styles.signUpText}>
-                        Already have an account? <Text style={styles.signUpLink}>Log in</Text>
-                    </Text>
-                </TouchableOpacity>
-            </View>
-        </ScrollView>
-    );
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-    // styles remain the same as in your original code
+  container: {
+    flex: 1,
+    padding: 20,
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  input: {
+    height: 50,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    marginBottom: 15,
+    paddingLeft: 10,
+    borderRadius: 5,
+  },
+  phoneContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  countryPickerButton: {
+    flex: 1,
+  },
+  phoneCode: {
+    fontSize: 18,
+    marginRight: 10,
+  },
+  datePickerButton: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    padding: 10,
+    marginBottom: 15,
+    borderRadius: 5,
+  },
+  dateText: {
+    fontSize: 18,
+    color: dateOfBirth ? '#000' : '#ccc',
+  },
 });
 
 export default CreateAccount;
+ 
