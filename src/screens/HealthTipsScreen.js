@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text, Card } from 'react-native-paper';
+import BottomNavigation from '../components/BottomNavigation'; // Adjust the path as needed
+
 
 const HealthTipsScreen = () => {
   return (
@@ -23,6 +25,8 @@ const HealthTipsScreen = () => {
       </Card>
     </ScrollView>
   );
+  <BottomNavigation navigation={navigation} />
+
 };
 
 const styles = StyleSheet.create({

@@ -134,47 +134,4 @@ export const updateDocument = async (collectionName, docId, updatedData) => {
 };
 
 
-
-/** Save User Data */
-export const saveUserData = async (userId, userData) => {
-    try {
-      await setDoc(doc(db, 'users', userId), userData, { merge: true });
-      console.log('User data saved successfully.');
-    } catch (error) {
-      console.error('Error saving user data:', error);
-      throw error;
-    }
-  };
-  
-  /** Save Lifestyle Data */
-  export const saveLifestyleData = async (userId, lifestyleData) => {
-    try {
-      await addDoc(collection(db, 'lifestyle'), { userId, ...lifestyleData });
-      console.log('Lifestyle data saved.');
-    } catch (error) {
-      console.error('Error saving lifestyle data:', error);
-      throw error;
-    }
-  };
-  
-  /** Save Medical History */
-  export const saveMedicalHistory = async (userId, medicalHistory) => {
-    try {
-      await addDoc(collection(db, 'medicalHistory'), { userId, ...medicalHistory });
-      console.log('Medical history saved.');
-    } catch (error) {
-      console.error('Error saving medical history:', error);
-      throw error;
-    }
-  };
-  
-  /** Save Symptoms */
-  export const saveSymptoms = async (userId, symptomsData) => {
-    try {
-      await addDoc(collection(db, 'symptoms'), { userId, ...symptomsData });
-      console.log('Symptoms data saved.');
-    } catch (error) {
-      console.error('Error saving symptoms data:', error);
-      throw error;
-    }
-  };
+///
