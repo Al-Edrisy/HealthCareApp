@@ -3,6 +3,7 @@ import { View, StyleSheet, TouchableOpacity, ActivityIndicator, Keyboard } from 
 import { TextInput, Button, Text, HelperText, IconButton } from 'react-native-paper';
 import * as Google from 'expo-auth-session/providers/google';
 import { auth, GoogleAuthProvider, signInWithCredential, signInWithEmailAndPassword } from '../constants/FireBaseConfig';
+import Colors from '../constants/Colors';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -10,11 +11,12 @@ const LoginScreen = ({ navigation }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [secureTextEntry, setSecureTextEntry] = useState(true);
+  const [isGoogleLoggingIn, setGoogleLoggingIn] = useState(false); // Track Google login state
 
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: "447271841764-iprvi87262sg9lt7tusooake3pls5mo4.apps.googleusercontent.com",
-    iosClientId: "447271841764-aigi29l7g4sei3am2h3su1o2q7r1ghmh.apps.googleusercontent.com",
-    webClientId: "447271841764-mf51gagkja359ncsger6r5f2qlrs77c5.apps.googleusercontent.com",
+    androidClientId: "YOUR_ANDROID_CLIENT_ID",
+    iosClientId: "YOUR_IOS_CLIENT_ID",
+    webClientId: "YOUR_WEB_CLIENT_ID",
   });
 
   // Handle Google sign-in response
@@ -22,12 +24,15 @@ const LoginScreen = ({ navigation }) => {
     if (response?.type === 'success') {
       const { id_token } = response.params;
       const credential = GoogleAuthProvider.credential(id_token);
+      setGoogleLoggingIn(true); // Start loading state for Google login
       signInWithCredential(auth, credential)
         .then((userCredential) => {
           console.log('User signed in with Google', userCredential.user);
+          setGoogleLoggingIn(false); // Stop loading
           navigation.navigate('HomeScreen');
         })
         .catch((error) => {
+          setGoogleLoggingIn(false); // Stop loading
           console.error('Google Sign-In error:', error);
           setErrorMessage('Google login failed. Please try again.');
         });
@@ -49,52 +54,47 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
-
-// Handle email and password login with specific error handling
-const handleLogin = async () => {
-  if (!email || !password) {
-    setErrorMessage('Please fill in both fields.');
-    return;
-  }
-
-  setLoading(true);
-  setErrorMessage('');
-  Keyboard.dismiss();
-
-  try {
-    // Ensure auth object is correctly initialized
-    if (!auth) {
-      throw new Error('Authentication service is not initialized.');
+  // Handle email and password login with specific error handling
+  const handleLogin = async () => {
+    if (!email || !password) {
+      setErrorMessage('Please fill in both fields.');
+      return;
     }
 
-    // Attempt Firebase email/password login
-    await signInWithEmailAndPassword(auth, email, password);
-    navigation.navigate('HomeScreen');
-  } catch (error) {
-    console.error("Login error:", error);
+    setLoading(true);
+    setErrorMessage('');
+    Keyboard.dismiss();
 
-    // Display specific error messages based on Firebase error codes
-    switch (error.code) {
-      case 'auth/wrong-password':
-        setErrorMessage('Incorrect password. Please try again.');
-        break;
-      case 'auth/user-not-found':
-        setErrorMessage('No account found with this email.');
-        break;
-      case 'auth/invalid-credential':
-        setErrorMessage('Invalid credentials. Please check your email and password.');
-        break;
-      case 'auth/invalid-email':
-        setErrorMessage('Please enter a valid email address.');
-        break;
-      default:
-        setErrorMessage('Login failed. Please try again later.');
+    try {
+      if (!auth) {
+        throw new Error('Authentication service is not initialized.');
+      }
+
+      await signInWithEmailAndPassword(auth, email, password);
+      navigation.navigate('HomeScreen');
+    } catch (error) {
+      console.error("Login error:", error);
+
+      switch (error.code) {
+        case 'auth/wrong-password':
+          setErrorMessage('Incorrect password. Please try again.');
+          break;
+        case 'auth/user-not-found':
+          setErrorMessage('No account found with this email.');
+          break;
+        case 'auth/invalid-credential':
+          setErrorMessage('Invalid credentials. Please check your email and password.');
+          break;
+        case 'auth/invalid-email':
+          setErrorMessage('Please enter a valid email address.');
+          break;
+        default:
+          setErrorMessage('Login failed. Please try again later.');
+      }
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   return (
     <View style={styles.container}>
@@ -149,7 +149,7 @@ const handleLogin = async () => {
           size={30} 
           style={styles.socialIcon} 
           onPress={handleGoogleLogin} 
-          disabled={loading || !request}
+          disabled={loading || isGoogleLoggingIn || !request}
         />
       </View>
 
@@ -190,14 +190,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   loginButton: {
-    backgroundColor: '#2260FF',
+    backgroundColor: Colors.primaryColor,
     borderRadius: 25,
     paddingVertical: 10,
     marginBottom: 20,
   },
   orText: {
     textAlign: 'center',
-    color: '#888',
+    color: Colors.primaryColor,
     marginBottom: 10,
   },
   socialContainer: {
@@ -206,17 +206,17 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   socialIcon: {
-    backgroundColor: '#9BBFFF',
+    backgroundColor: Colors.primaryColor,
     marginHorizontal: 10,
     borderRadius: 50,
   },
   signUpText: {
     textAlign: 'center',
-    color: '#888',
+    color: Colors.primaryColor,
     fontSize: 12,
   },
   signUpLink: {
-    color: '#2260FF',
+    color: Colors.primaryColor,
     fontWeight: 'bold',
   },
 });

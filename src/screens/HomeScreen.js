@@ -1,43 +1,92 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, ScrollView, StyleSheet, Dimensions, TextInput, TouchableOpacity } from 'react-native';
+import { View, ScrollView, StyleSheet, Dimensions, TextInput, TouchableOpacity, Animated, ActivityIndicator } from 'react-native';
 import { Text, IconButton, Card, FAB } from 'react-native-paper';
 import BottomNavigation from '../components/BottomNavigation'; // Import the BottomNavigation component
+import Colors from '../constants/Colors';
+import axios from 'axios'; // Import axios to handle HTTP requests
 
 const { width, height } = Dimensions.get('window');
 
 const HomeScreen = ({ navigation }) => {
   const [quoteVisible, setQuoteVisible] = useState(true);
+  const [fadeAnim] = useState(new Animated.Value(1)); // Animation for fading out
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredArticles, setFilteredArticles] = useState([
-    "Healthy Eating", "Stress Management", "Benefits of Yoga"
+    "Healthy Eating", "Stress Management", "Benefits of Yoga",
   ]);
-  const [selectedCard, setSelectedCard] = useState(null); // Track which card is clicked
-  const scrollViewRef = useRef(null);
+  const [selectedCard, setSelectedCard] = useState(null);
   const [isCardVisible, setCardVisible] = useState(false);
-  
-  // For auto-scrolling Health Tips
-  const healthTipsData = [
-    { title: "Drink Water", description: "Stay hydrated by drinking enough water throughout the day.", color: '#64B5F6' },
-    { title: "Exercise Regularly", description: "Engage in physical activity for at least 30 minutes a day.", color: '#81C784' },
-    { title: "Get Enough Sleep", description: "A good night’s sleep improves your overall health.", color: '#FFEB3B' },
-    { title: "Eat Healthy", description: "Consume a balanced diet that includes fruits and vegetables.", color: '#FF7043' },
-  ];
+  const [healthTipsData, setHealthTipsData] = useState([]); // For health tips
+  const [loadingHealthTips, setLoadingHealthTips] = useState(true); // Loading state for health tips
+  const scrollViewRef = useRef(null);
+
+  const [currentTipIndex, setCurrentTipIndex] = useState(0);
+  const healthTipsRef = useRef(null);
+
+  // Fetch user data from Firestore and check the health tips update status
+  useEffect(() => {
+    const fetchHealthTips = async () => {
+      try {
+        // Fetch user data from Firestore (you may need to adjust this based on your Firestore structure)
+        const userId = 'users/JjgSQE3IEhlhQxYsEhyw'; // Sample userId, replace with actual
+        const response = await axios.get(`https://your-backend-url.com/healthTips/getHealthTips`, {
+          params: { userId },
+        });
+
+        // Ensure that the response contains a valid `tips` array
+        if (response.data && Array.isArray(response.data.tips)) {
+          setHealthTipsData(response.data.tips);
+        } else {
+          console.error("Unexpected response structure:", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching health tips:", error);
+      } finally {
+        setLoadingHealthTips(false);
+      }
+    };
+
+    fetchHealthTips();
+  }, []); // Empty dependency array ensures it runs only once when the component mounts
 
   useEffect(() => {
-    // Hide quote after 5 seconds
-    const timer = setTimeout(() => {
-      setQuoteVisible(false);
+    const interval = setInterval(() => {
+      setCurrentTipIndex((prevIndex) => (prevIndex + 1) % healthTipsData.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [healthTipsData]);
+
+  useEffect(() => {
+    if (healthTipsRef.current && healthTipsData.length > 0) {
+      healthTipsRef.current.scrollTo({
+        x: currentTipIndex * (width - 40),
+        animated: true,
+      });
+    }
+  }, [currentTipIndex, healthTipsData]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }).start(() => setQuoteVisible(false));
     }, 5000);
 
-    return () => clearTimeout(timer);
+    return () => clearTimeout(timeout);
   }, []);
 
   const handleSearchChange = (text) => {
     setSearchQuery(text);
-    const filtered = ["Healthy Eating", "Stress Management", "Benefits of Yoga"].filter(article =>
-      article.toLowerCase().includes(text.toLowerCase())
-    );
-    setFilteredArticles(filtered);
+    try {
+      const filtered = ["Healthy Eating", "Stress Management", "Benefits of Yoga"].filter(article =>
+        article.toLowerCase().includes(text.toLowerCase())
+      );
+      setFilteredArticles(filtered);
+    } catch (error) {
+      console.error("Error filtering articles:", error);
+    }
   };
 
   const handleCardClick = (cardContent) => {
@@ -84,18 +133,18 @@ const HomeScreen = ({ navigation }) => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} ref={scrollViewRef}>
-        {/* Quote Section */}
+        {/* Animated Quote Section */}
         {quoteVisible && (
-          <Card style={styles.quoteCard}>
+          <Animated.View style={[styles.quoteCard, { opacity: fadeAnim }]}>
             <Text style={styles.quoteText}>"The greatest wealth is health." – Virgil</Text>
-          </Card>
+          </Animated.View>
         )}
 
         {/* Quick Links */}
         <Text variant="headlineSmall" style={styles.sectionHeader}>Healthcare Services</Text>
         <View style={styles.quickLinksContainer}>
           {[
-            { icon: 'chat', title: 'Dr. ChatGPT', screen: 'ChatScreen' },
+            { icon: 'chat', title: 'Dr.GPT', screen: 'ChatScreen' },
             { icon: 'heart', title: 'Health Records', screen: 'HealthRecordsScreen' },
             { icon: 'hospital-building', title: 'Nearby Hospitals', screen: 'NearbyHospitalsScreen' },
           ].map((item, index) => (
@@ -108,27 +157,35 @@ const HomeScreen = ({ navigation }) => {
 
         {/* Health Tips Section */}
         <Text variant="headlineSmall" style={styles.sectionHeader}>Health Tips</Text>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
-          style={styles.healthTipsContainer}
-          contentContainerStyle={{ flexDirection: 'row' }}
-        >
-          {healthTipsData.map((tip, index) => (
-            <TouchableOpacity key={index} onPress={() => handleCardClick({ title: tip.title, content: tip.description })}>
-              <Card style={[styles.healthTipCard, { backgroundColor: tip.color }]}>
-                <Text style={styles.healthTipTitle}>{tip.title}</Text>
-                <Text style={styles.healthTipDescription}>{tip.description}</Text>
-              </Card>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        {loadingHealthTips ? (
+          <ActivityIndicator size="large" color={Colors.primary} style={styles.loadingIndicator} />
+        ) : (
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            style={styles.healthTipsContainer}
+            ref={healthTipsRef}
+          >
+            {healthTipsData.length > 0 ? (
+              healthTipsData.map((tip, index) => (
+                <TouchableOpacity key={index} onPress={() => handleCardClick({ title: tip.title, content: tip.description })}>
+                  <Card style={[styles.healthTipCard, { backgroundColor: tip.color }]}>
+                    <Text style={styles.healthTipTitle}>{tip.title}</Text>
+                    <Text style={styles.healthTipDescription}>{tip.description}</Text>
+                  </Card>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <Text>No health tips available</Text>
+            )}
+          </ScrollView>
+        )}
 
         {/* Trending Articles Section */}
         <Text variant="headlineSmall" style={styles.sectionHeader}>Trending Articles</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.articlesContainer}>
-          {filteredArticles.length > 0 && filteredArticles.map((article, index) => (
-            <TouchableOpacity key={index} onPress={() => handleCardClick({ title: article, content: "Article content for " + article })}>
+          {filteredArticles.map((article, index) => (
+            <TouchableOpacity key={index} onPress={() => handleCardClick({ title: article, content: `Article content for ${article}` })}>
               <Card style={styles.articleCard}>
                 <Text style={styles.articleText}>{article}</Text>
                 <Text style={styles.articleDescription}>Read more about {article}</Text>
@@ -152,10 +209,10 @@ const HomeScreen = ({ navigation }) => {
       )}
 
       {/* Bottom Navigation */}
-      {isCardVisible === false && <BottomNavigation navigation={navigation} />}
+      {!isCardVisible && <BottomNavigation navigation={navigation} />}
 
       {/* Emergency Button */}
-      {isCardVisible === false && (
+      {!isCardVisible && (
         <FAB 
           style={styles.emergencyButton} 
           icon="phone" 
@@ -174,8 +231,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F9FA',
   },
   header: {
-    backgroundColor: '#2260FF',
-    paddingVertical: 30,
+    backgroundColor: Colors.primaryColor,
+    paddingVertical: 50,
     paddingHorizontal: 20,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
@@ -249,6 +306,7 @@ const styles = StyleSheet.create({
   quickLinkIcon: {
     backgroundColor: '#D7E9F7',
     marginBottom: 10,
+    justifyContent: 'center',
   },
   quickLinkText: {
     fontSize: 16,
@@ -289,7 +347,7 @@ const styles = StyleSheet.create({
     marginRight: 15,
     padding: 20,
     borderRadius: 15,
-    backgroundColor: '#E8F8F5', // Light and clean background color
+    backgroundColor: '#D2DDFA', // Light and clean background color
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -309,6 +367,7 @@ const styles = StyleSheet.create({
   },
   expandedCard: {
     width: width - 40,
+    justifyContent: 'center',
     height: 300,
     padding: 20,
     backgroundColor: '#FFF',
