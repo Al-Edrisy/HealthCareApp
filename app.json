@@ -31,7 +31,10 @@
     "extra": {
       "eas": {
         "projectId": "e7194f46-05de-4910-820c-349e93c558ac"
-      }
+      },
+      "androidClientId": "447271841764-iprvi87262sg9lt7tusooake3pls5mo4.apps.googleusercontent.com",
+      "iosClientId": "447271841764-aigi29l7g4sei3am2h3su1o2q7r1ghmh.apps.googleusercontent.com",  
+      "webClientId": "447271841764-mf51gagkja359ncsger6r5f2qlrs77c5.apps.googleusercontent.com" 
     },
     "newArchEnabled": true
   }

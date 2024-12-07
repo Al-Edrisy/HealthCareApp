@@ -1,5 +1,7 @@
 import React from "react";
 import { StyleSheet, Image, Text, View, TouchableOpacity } from "react-native";
+import Colors from '../constants/Colors';
+
 
 const AuthScreen = ({ navigation }) => {
   return (
@@ -61,26 +63,26 @@ const styles = StyleSheet.create({
     color: '#2260FF',
   },
   AppName: {
-    color: "#2260FF",
+    color: Colors.primaryColor,
     fontSize: 32,
     fontWeight: "bold",
     textAlign: "center",
   },
   AppText: {
-    color: "#2260FF",
+    color: Colors.primaryColor,
     fontSize: 14,
     textAlign: "center",
     marginBottom: 15,
     marginTop: 20,
   },
   DescriptionText: {
-    color: "#070707",
+    color: Colors.primaryColor,
     fontSize: 12,
     textAlign: "center",
     marginBottom: 30,
   },
   ButtonLogin: {
-    backgroundColor: "#2260FF",
+    backgroundColor: Colors.primaryColor,
     borderRadius: 25,
     width: "80%",
     paddingVertical: 10,
