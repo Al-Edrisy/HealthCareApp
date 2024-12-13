@@ -13,7 +13,7 @@ import {
 } from 'firebase/firestore';
 
 /**
- * Adds a document to the 'lifestyle' collection.
+ * Adds a document to the 'lifestyle' collection. 
  * @param {string} userId - The ID of the user.
  * @param {Object} lifestyleData - Lifestyle data to save.
  * @returns {Promise<string>} - The ID of the added document.

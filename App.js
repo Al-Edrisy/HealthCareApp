@@ -2,7 +2,10 @@ import React from 'react';
 import { LogBox } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Provider as PaperProvider } from 'react-native-paper';
+import { Provider as PaperProvider , Menu, Divider} from 'react-native-paper';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'; // Fixed the import for bottom tabs
+import { FontAwesome } from '@expo/vector-icons'; // Add this import for FontAwesome
+
 LogBox.ignoreLogs([
   'Support for defaultProps will be removed from function components in a future major release.',
 ]);
@@ -19,20 +22,21 @@ import UserDataScreen from './src/screens/UserDataScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import FindDoctorScreen from './src/screens/FindDoctorScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
-import PrescriptionsScreen from './src/screens/PrescriptionsScreen';
-import LabResultsScreen from './src/screens/LabResultsScreen';
-import InsuranceScreen from './src/screens/InsuranceScreen';
 import AppointmentsScreen from './src/screens/AppointmentsScreen';
 
 // Import new additional screens (Health-related features)
 import ChatScreen from './src/screens/ChatScreen';
 import HealthTipsScreen from './src/screens/HealthTipsScreen';
-import HealthHistoryScreen from './src/screens/HealthHistoryScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import NotificationScreen from './src/screens/NotificationScreen';
 import EmergencyScreen from './src/screens/EmergencyScreen';
+import MedicalLibraryScreen from './src/screens/MedicalLibraryScreen';
+import FirstAidScreen from './src/screens/FirstAidScreen';
 
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
+
+
 
 const App = () => {
   return (
@@ -40,104 +44,115 @@ const App = () => {
       <NavigationContainer>
         <Stack.Navigator initialRouteName="WelcomeScreen">
           {/* Authentication Flow */}
-          <Stack.Screen
-            name="WelcomeScreen"
-            component={WelcomeScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="AuthScreen"
-            component={AuthScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="LoginScreen"
-            component={LoginScreen}
-            options={{ title: 'Login' }}
-          />
-          <Stack.Screen
-            name="ForgotPassword"
-            component={ForgotPassword}
-            options={{ title: 'Reset Password' }}
-          />
-          <Stack.Screen
-            name="CreateAccount"
-            component={CreateAccount}
-            options={{ title: 'Create Account' }}
-          />
-          <Stack.Screen name="NotificationsScreen" 
-          component={NotificationScreen}
-          options={{ title: 'Notifications' }}/>
-          <Stack.Screen
-            name="UserDataScreen"
-            component={UserDataScreen}
-            options={{title: 'User Data'}}
-          />
-
-          {/* Main App Flow (after authentication) */}
-          <Stack.Screen
-            name="HomeScreen"
-            component={HomeScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="FindDoctorScreen"
-            component={FindDoctorScreen}
-            options={{ title: 'Find a Doctor' }}
-          />
-          <Stack.Screen
-            name="ProfileScreen"
-            component={ProfileScreen}
-            options={{ title: 'My Profile' }}
-          />
-          <Stack.Screen
-            name="PrescriptionsScreen"
-            component={PrescriptionsScreen}
-            options={{ title: 'Prescriptions' }}
-          />
-          <Stack.Screen
-            name="LabResultsScreen"
-            component={LabResultsScreen}
-            options={{ title: 'Lab Results' }}
-          />
-          <Stack.Screen
-            name="InsuranceScreen"
-            component={InsuranceScreen}
-            options={{ title: 'Insurance Info' }}
-          />
-          <Stack.Screen name="EmergencyScreen" 
-          component={EmergencyScreen} 
-          options={{ title: 'Emergency' }}/>
-
-          {/* Health-related Features */}
-          <Stack.Screen
-            name="ChatScreen"
-            component={ChatScreen}
-            options={{ title: 'Chat with Dr. GPT' }}
-          />
-          <Stack.Screen
-            name="HealthTipsScreen"
-            component={HealthTipsScreen}
-            options={{ title: 'Health Tips' }}
-          />
-          <Stack.Screen
-            name="HealthHistoryScreen"
-            component={HealthHistoryScreen}
-            options={{ title: 'Health History' }}
-          />
-          <Stack.Screen
-            name="SettingsScreen"
-            component={SettingsScreen}
-            options={{ title: 'Settings' }}
-          />
-          <Stack.Screen 
-          name="AppointmentsScreen" 
-          component={AppointmentsScreen} 
-          options={{ title: 'Appointments' }}/>
-
+          <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="AuthScreen" component={AuthScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ title: 'Login' }} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPassword} options={{ title: 'Reset Password' }} />
+          <Stack.Screen name="CreateAccount" component={CreateAccount} options={{ title: 'Create Account' }} />
+          <Stack.Screen name="UserDataScreen" component={UserDataScreen} options={{ title: 'User Data' }} />
+          {/* HomeScreen now properly using Tabs */}
+          <Stack.Screen name="HomeScreen" component={Tabs} options={{ headerShown: false }} />
+          <Stack.Screen name="DR.GPT" component={ChatScreen} options={{ title: 'DR. GPT' }} />
+          <Stack.Screen name="AppointmentsScreen" component={AppointmentsScreen} options={{ title: 'R & M' }} />
+          <Stack.Screen name="Nearby Hospitals" component={FindDoctorScreen} options={{ title: 'Find Nearby Hospitals' }} />
+          <Stack.Screen name="ProfileScreen" component={ProfileScreen} options={{title:'Profile'}}/>
+          <Stack.Screen name="EmergencyScreen" component={EmergencyScreen} options={{title: 'Emergency'}} />
+          <Stack.Screen name="SettingsScreen" component={SettingsScreen} options={{title: 'Settings'}}/>
+          <Stack.Screen name="MedicalLibraryScreen" component={MedicalLibraryScreen} options={{title: 'Medical Library'}}/>
+          <Stack.Screen name="FirstAidScreen" component={FirstAidScreen} options={{title: 'First Aid'}}/>
+          <Stack.Screen name="NotificationScreen" component={NotificationScreen} options={{title: 'Notification'}}/>
         </Stack.Navigator>
       </NavigationContainer>
     </PaperProvider>
+  );
+};
+
+const Tabs = ({ navigation }) => {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        tabBarStyle: { backgroundColor: '#2270FF' },
+        tabBarActiveTintColor: '#fff',
+        tabBarInactiveTintColor: '#000',
+        headerStyle: { backgroundColor: '#2260FF' },
+        headerTintColor: '#fff',
+        headerTitleStyle: { fontWeight: 'bold' },
+      }}
+    >
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={({ navigation }) => ({
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome name="home" color={color} size={size} />
+          ),
+          headerShown: false,
+          headerRight: () => (
+            <FontAwesome
+              name="cog"
+              size={30}
+              color="primary"
+              style={{ marginRight: 15 }}
+              onPress={() => navigation.navigate('SettingsScreen')} // Fixed typo
+            />
+          ),
+        })}
+      />
+      <Tab.Screen
+        name="DR. GPT"
+        component={ChatScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome name="comments" color={color} size={size} />
+          ),
+          headerRight: () => (
+            <FontAwesome
+              name="cog"
+              size={30}
+              color="primary"
+              style={{ margin: 15 }}
+              onPress={() => navigation.navigate('SettingsScreen')}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Reminders and Medications"
+        component={AppointmentsScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome name="calendar" color={color} size={size} />
+          ),
+          headerRight: () => (
+            <FontAwesome
+              name="cog"
+              size={30}
+              color="primary"
+              style={{ margin: 15 }}
+              onPress={() => navigation.navigate('SettingsScreen')}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Nearby Hospitals and Doctors"
+        component={FindDoctorScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome name="search" color={color} size={size} />
+          ),
+          headerRight: () => (
+            <FontAwesome
+              name="cog"
+              size={30}
+              color="primary"
+              style={{ margin: 15 }}
+              onPress={() => navigation.navigate('SettingsScreen')}
+            />
+          ),
+        }}
+      />
+    </Tab.Navigator>
   );
 };
 
