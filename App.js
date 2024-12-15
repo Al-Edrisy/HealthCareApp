@@ -61,6 +61,7 @@ const App = () => {
           <Stack.Screen name="MedicalLibraryScreen" component={MedicalLibraryScreen} options={{title: 'Medical Library'}}/>
           <Stack.Screen name="FirstAidScreen" component={FirstAidScreen} options={{title: 'First Aid'}}/>
           <Stack.Screen name="NotificationScreen" component={NotificationScreen} options={{title: 'Notification'}}/>
+          <Stack.Screen name="HealthTipsScreen" component={HealthTipsScreen} options={{title: 'HealthTipsScreen'}}/>
         </Stack.Navigator>
       </NavigationContainer>
     </PaperProvider>
@@ -139,7 +140,7 @@ const Tabs = ({ navigation }) => {
         component={FindDoctorScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="search" color={color} size={size} />
+            <FontAwesome name="hospital-o" color={color} size={size} />
           ),
           headerRight: () => (
             <FontAwesome

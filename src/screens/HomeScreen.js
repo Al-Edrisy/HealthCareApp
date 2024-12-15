@@ -5,6 +5,7 @@ import { Text, IconButton, Card, FAB, Menu, Divider } from 'react-native-paper';
 import Colors from '../constants/Colors';
 import axios from 'axios';
 
+
 const { width, height } = Dimensions.get('window');
 
 const HomeScreen = ({ navigation }) => {
@@ -60,6 +61,7 @@ const HomeScreen = ({ navigation }) => {
   const handleEmergency = () => {
     navigation.navigate('EmergencyScreen');
   };
+
 
   return (
     <View style={styles.container}>
@@ -121,16 +123,16 @@ const HomeScreen = ({ navigation }) => {
         {/* Quick Links */}
         <Text variant="headlineSmall" style={styles.sectionHeader}>Healthcare Services</Text>
         <View style={styles.quickLinksContainer}>
-          {[ 
-            { icon: 'chat', title: 'Dr.GPT', screen: 'ChatScreen' },
+           {[ 
+            { icon: 'chat', title: 'Dr.GPT', screen: 'DR.GPT' },
             { icon: 'heart', title: 'Health Records', screen: 'HealthTipsScreen' },
-            { icon: 'hospital-building', title: 'Nearby Hospitals', screen: 'FindDoctorScreen' },
+            { icon: 'hospital-building', title: 'Nearby Hospitals', screen: 'Nearby Hospitals' },
           ].map((item, index) => (
             <Card key={index} style={styles.quickLinkCard} onPress={() => navigation.navigate(item.screen)}>
               <IconButton icon={item.icon} size={40} style={styles.quickLinkIcon} />
               <Text style={styles.quickLinkText}>{item.title}</Text>
             </Card>
-          ))}
+          ))} 
         </View>
 
         {/* Health Tips Section */}
