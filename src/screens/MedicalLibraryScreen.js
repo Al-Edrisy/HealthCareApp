@@ -6,7 +6,9 @@ const MedicalLibrartyScreen = () => {
   return (
     <View style={styles.container}>
       <Card style={styles.card}>
+        <Text style={styles.H}>Dummy Text</Text>
         <Text style={styles.cardText}>Medical Library of Articles and Videos etc</Text>
+        <Text style={styles.cardText}>Tho the rest of the team are not intrested as they feel it's not feasible database wise...LOL!</Text>
       </Card>
     </View>
   );
@@ -37,6 +39,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#333',
   },
+  H:{
+    fontSize: 25,
+    color: '#2260FF',
+    fontWeight: 'bold',
+  }
 });
 
 export default MedicalLibrartyScreen;

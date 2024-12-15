@@ -48,13 +48,6 @@ const EmergencyScreen = ({ navigation }) => {
           Send Message
         </Button>
       </View>
-
-      <IconButton
-        icon="arrow-left"
-        size={30}
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      />
     </View>
   );
 };
@@ -97,12 +90,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 20,
-    left: 20,
-    backgroundColor: '#FFFFFF',
   },
 });
 

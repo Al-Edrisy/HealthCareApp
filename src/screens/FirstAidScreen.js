@@ -6,6 +6,7 @@ const FirstAidScreen = () => {
   return (
     <View style={styles.container}>
       <Card style={styles.card}>
+        <Text style={styles.H}>Dummy Text</Text>
         <Text style={styles.cardText}>First Aid Screen</Text>
       </Card>
     </View>
@@ -17,7 +18,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F0F4F8',  // Light background color for the screen
+    backgroundColor: '#F0F4F8', 
   },
   card: {
     width: 300,
@@ -37,6 +38,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#333',
   },
+  H:{
+    fontSize: 25,
+    color: '#2260FF',
+    fontWeight: 'bold',
+  }
 });
 
 export default FirstAidScreen;

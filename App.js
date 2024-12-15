@@ -21,7 +21,10 @@ import UserDataScreen from './src/screens/UserDataScreen';
 // Import main app screens (After successful login)
 import HomeScreen from './src/screens/HomeScreen';
 import FindDoctorScreen from './src/screens/FindDoctorScreen';
-import ProfileScreen from './src/screens/ProfileScreen';
+import ProfileScreen from './src/screens/Profile/ProfileScreen';
+import UserInformationScreen from './src/screens/Profile/UserInformation';
+import MedicalHistoryScreen from './src/screens/Profile/MedicalHistoryScreen';
+import LifestyleScreen from './src/screens/Profile/LifestyleScreen';
 import AppointmentsScreen from './src/screens/AppointmentsScreen';
 
 // Import new additional screens (Health-related features)
@@ -56,6 +59,9 @@ const App = () => {
           <Stack.Screen name="AppointmentsScreen" component={AppointmentsScreen} options={{ title: 'R & M' }} />
           <Stack.Screen name="Nearby Hospitals" component={FindDoctorScreen} options={{ title: 'Find Nearby Hospitals' }} />
           <Stack.Screen name="ProfileScreen" component={ProfileScreen} options={{title:'Profile'}}/>
+          <Stack.Screen name="UserInformationScreen" component={UserInformationScreen} options={{title: 'User Information'}}/>
+          <Stack.Screen name="MedicalHistoryScreen" component={MedicalHistoryScreen} options={{ title: 'Medical History Information'}}/>
+          <Stack.Screen name="LifestyleScreen" component={LifestyleScreen} options={{title: 'Lifestyle'}}/>
           <Stack.Screen name="EmergencyScreen" component={EmergencyScreen} options={{title: 'Emergency'}} />
           <Stack.Screen name="SettingsScreen" component={SettingsScreen} options={{title: 'Settings'}}/>
           <Stack.Screen name="MedicalLibraryScreen" component={MedicalLibraryScreen} options={{title: 'Medical Library'}}/>

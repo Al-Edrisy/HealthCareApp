@@ -1,19 +1,11 @@
 import React, { useState } from 'react';
-import {
-  StyleSheet,
-  View,
-  TextInput,
-  Alert,
-  ScrollView,
-  Switch,
-  TouchableOpacity,
-} from 'react-native';
+import {StyleSheet, View, TextInput, Alert, ScrollView, Switch, TouchableOpacity,} from 'react-native';
 import { Avatar, Text, Button, IconButton } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import { deleteUser } from 'firebase/auth'; // Firebase function to delete user
-import { auth } from '../constants/FireBaseConfig'; // Your Firebase auth configuration
+import { auth } from '../../constants/FireBaseConfig'; // Your Firebase auth configuration
 
-const ProfileScreen = ({ navigation }) => {
+const MedicalHistoryScreen = ({ navigation }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     medicalHistory: false,
@@ -47,8 +39,7 @@ const ProfileScreen = ({ navigation }) => {
     dietType: 'Balanced',
     lifestyleNotes: 'No additional notes',
 
-    // Symptoms
-    symptomList: 'None',
+    
   });
 
   const handleInputChange = (key, value) => {
@@ -128,6 +119,8 @@ const ProfileScreen = ({ navigation }) => {
       {/* Personal Information */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Personal Information</Text>
+        <Text style={styles.sectionTitle}>note guys this is a dummy screen, I was to make it as what Salih said in the video but I am stopping for now and committing this.Someone else should help with it, I have an emergency to attend to.... Ask Salih for more details</Text>
+
         {['name', 'gender', 'dateOfBirth', 'email', 'phone', 'height', 'weight'].map((field) => (
           <View style={styles.fieldContainer} key={field}>
             <Text style={styles.label}>{field.replace(/([A-Z])/g, ' $1')}</Text>
@@ -233,4 +226,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProfileScreen;
+export default MedicalHistoryScreen;
