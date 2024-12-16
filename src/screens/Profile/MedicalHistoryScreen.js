@@ -7,50 +7,29 @@ import { auth } from '../../constants/FireBaseConfig'; // Your Firebase auth con
 
 const MedicalHistoryScreen = ({ navigation }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [expandedSections, setExpandedSections] = useState({
-    medicalHistory: false,
-    lifestyle: false,
-    symptoms: false,
-  });
 
   const [profileInfo, setProfileInfo] = useState({
     // Personal Information
-    name: 'Jane Doe',
-    gender: 'Female',
-    dateOfBirth: '1990-01-01',
-    email: 'jane.doe@example.com',
-    phone: '+123 456 7890',
-    height: '170 cm',
-    weight: '65 kg',
+    Allergies: 'Dust, Insecticides and Other Sprays',
+    BloodType: 'O+',
+    ChronicDiseases: 'Asthma',
+    Diseases: 'Arthritis',
+    FamilyHistory: 'Asthmatic, Arthritis',
+    Genotype: 'AA',
+    Medications: 'MDI Inhalers',
+    Precautions: 'Face Mask, Knee Pads',
+    SurgicalHistory: 'Appendix',
+    Vaccinations: 'COVID-19',
     smokes: false,
     drinksAlcohol: false,
-    avatar: 'https://via.placeholder.com/100', // Default avatar
+    Avatar: 'https://via.placeholder.com/100', // Default avatar
 
     // Medical History
     userId: '123456',
-    chronicDiseases: 'None',
-    allergies: 'None',
-    medications: 'None',
-    surgicalHistory: 'None',
-    familyHistory: 'None',
-
-    // Lifestyle
-    exerciseFrequency: 'Daily',
-    dietType: 'Balanced',
-    lifestyleNotes: 'No additional notes',
-
-    
   });
 
   const handleInputChange = (key, value) => {
     setProfileInfo({ ...profileInfo, [key]: value });
-  };
-
-  const toggleSection = (section) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
   };
 
   const pickImage = async () => {
@@ -68,44 +47,15 @@ const MedicalHistoryScreen = ({ navigation }) => {
     });
 
     if (!result.canceled) {
-      setProfileInfo({ ...profileInfo, avatar: result.assets[0].uri });
+      setProfileInfo({ ...profileInfo, Avatar: result.assets[0].uri });
     }
-  };
-
-  const handleDeleteAccount = async () => {
-    Alert.alert(
-      'Delete Account',
-      'Are you sure you want to delete your account? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const user = auth.currentUser;
-              if (user) {
-                await deleteUser(user); // Firebase delete user
-                Alert.alert('Account Deleted', 'Your account has been successfully deleted.');
-                navigation.navigate('LoginScreen'); // Redirect to the login screen
-              } else {
-                Alert.alert('Error', 'No user is currently logged in.');
-              }
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete account. Please try again.');
-              console.error('Delete Account Error:', error);
-            }
-          },
-        },
-      ]
-    );
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* Avatar Section */}
       <View style={styles.avatarContainer}>
-        <Avatar.Image size={100} source={{ uri: profileInfo.avatar }} />
+        <Avatar.Image size={100} source={{ uri: profileInfo.Avatar }} />
         {isEditing && (
           <IconButton
             icon="camera"
@@ -118,10 +68,10 @@ const MedicalHistoryScreen = ({ navigation }) => {
 
       {/* Personal Information */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Personal Information</Text>
+        <Text style={styles.sectionTitle}>Medical History Information</Text>
         <Text style={styles.sectionTitle}>note guys this is a dummy screen, I was to make it as what Salih said in the video but I am stopping for now and committing this.Someone else should help with it, I have an emergency to attend to.... Ask Salih for more details</Text>
 
-        {['name', 'gender', 'dateOfBirth', 'email', 'phone', 'height', 'weight'].map((field) => (
+        {['BloodType', 'Genotype', 'Allergies', 'Diseases', 'ChronicDiseases', 'FamilyHistory', 'SurgicalHistory', 'Precautions', 'Medications', 'Vaccinations'].map((field) => (
           <View style={styles.fieldContainer} key={field}>
             <Text style={styles.label}>{field.replace(/([A-Z])/g, ' $1')}</Text>
             <TextInput
@@ -132,25 +82,8 @@ const MedicalHistoryScreen = ({ navigation }) => {
             />
           </View>
         ))}
-        {/* Smokes and Drinks */}
-        {['smokes', 'drinksAlcohol'].map((field) => (
-          <View style={styles.switchContainer} key={field}>
-            <Text style={styles.label}>
-              {field === 'smokes' ? 'Smokes?' : 'Drinks Alcohol?'}
-            </Text>
-            <Switch
-              value={profileInfo[field]}
-              onValueChange={(value) => handleInputChange(field, value)}
-              disabled={!isEditing}
-            />
-          </View>
-        ))}
       </View>
 
-      {/* Medical History, Lifestyle, Symptoms Sections */}
-      {/* ... (unchanged sections for medicalHistory, lifestyle, and symptoms) ... */}
-
-      {/* Edit/Save and Delete Account Buttons */}
       <View style={styles.buttonContainer}>
         <Button
           mode="contained"
@@ -158,13 +91,6 @@ const MedicalHistoryScreen = ({ navigation }) => {
           onPress={() => setIsEditing(!isEditing)}
         >
           {isEditing ? 'Save Changes' : 'Edit Profile'}
-        </Button>
-        <Button
-          mode="contained"
-          style={styles.deleteButton}
-          onPress={handleDeleteAccount}
-        >
-          Delete Account
         </Button>
       </View>
     </ScrollView>
@@ -199,7 +125,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontWeight: 'bold',
-    color: '#333',
+    color: '#2260FF',
+    fontSize: 17,
   },
   input: {
     borderBottomWidth: 1,

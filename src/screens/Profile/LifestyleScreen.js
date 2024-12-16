@@ -7,15 +7,24 @@ import { auth } from '../../constants/FireBaseConfig'; // Your Firebase auth con
 
 const LifestyleScreen = ({ navigation }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [expandedSections, setExpandedSections] = useState({
-    lifestyle: false,
-  });
+  
 
   const [profileInfo, setProfileInfo] = useState({
     // Lifestyle
-    exerciseFrequency: 'Daily',
-    dietType: 'Balanced',
-    lifestyleNotes: 'No additional notes',
+    Username: '',
+    DietType: 'Vegetarian',
+    MarialStatus:'Single',
+    DominantFoot: 'Right',
+    DominantHand: 'Left',
+    ExcersiseFrequency: 'Daily',
+    SelfEsteem: 'High',
+    ScreenTime: '4 Hours',
+    SleepHours: '7 Hours',
+    Notes: '....',
+    smokes: false,
+    drinksAlcohol: false,
+    Avatar: 'https://via.placeholder.com/100'
+   
 
     
   });
@@ -24,12 +33,7 @@ const LifestyleScreen = ({ navigation }) => {
     setProfileInfo({ ...profileInfo, [key]: value });
   };
 
-  const toggleSection = (section) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
+  
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -46,7 +50,7 @@ const LifestyleScreen = ({ navigation }) => {
     });
 
     if (!result.canceled) {
-      setProfileInfo({ ...profileInfo, avatar: result.assets[0].uri });
+      setProfileInfo({ ...profileInfo, Avatar: result.assets[0].uri });
     }
   };
 
@@ -56,7 +60,7 @@ const LifestyleScreen = ({ navigation }) => {
         
       {/* Avatar Section */}
       <View style={styles.avatarContainer}>
-        <Avatar.Image size={100} source={{ uri: profileInfo.avatar }} />
+        <Avatar.Image size={100} source={{ uri: profileInfo.Avatar }} />
         {isEditing && (
           <IconButton
             icon="camera"
@@ -69,9 +73,9 @@ const LifestyleScreen = ({ navigation }) => {
 
       {/* Personal Information */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Personal Information</Text>
+        <Text style={styles.sectionTitle}>Lifestyle Information</Text>
         <Text style={styles.sectionTitle}>note guys this is a dummy screen, I was to make it as what Salih said in the video but I am stopping for now and committing this.Someone else should help with it, I have an emergency to attend to.... Ask Salih for more details</Text>
-        {['name', 'gender', 'dateOfBirth', 'email', 'phone', 'height', 'weight'].map((field) => (
+        {['DietType', 'MarialStatus', 'DominantFoot', 'DominantHand','ExcersiseFrequency', 'SelfEsteem',  'ScreenTime', 'SleepHours', 'Notes'].map((field) => (
           <View style={styles.fieldContainer} key={field}>
             <Text style={styles.label}>{field.replace(/([A-Z])/g, ' $1')}</Text>
             <TextInput
@@ -79,6 +83,20 @@ const LifestyleScreen = ({ navigation }) => {
               editable={isEditing}
               value={profileInfo[field]}
               onChangeText={(text) => handleInputChange(field, text)}
+            />
+          </View>
+        ))}
+
+        {/* Smokes and Drinks */}
+        {['smokes', 'drinksAlcohol'].map((field) => (
+          <View style={styles.switchContainer} key={field}>
+            <Text style={styles.label}>
+              {field === 'smokes' ? 'Smokes?' : 'Drinks Alcohol?'}
+            </Text>
+            <Switch
+              value={profileInfo[field]}
+              onValueChange={(value) => handleInputChange(field, value)}
+              disabled={!isEditing}
             />
           </View>
         ))}
@@ -126,7 +144,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontWeight: 'bold',
-    color: '#333',
+    color: '#2260FF',
+    fontSize: 17,
   },
   input: {
     borderBottomWidth: 1,
