@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
@@ -46,10 +47,44 @@ const LifestyleScreen = ({ navigation }) => {
     fetchLifestyleData();
   }, []);
 
+=======
+import React, { useState } from 'react';
+import {StyleSheet, View, TextInput, Alert, ScrollView, Switch, TouchableOpacity,} from 'react-native';
+import { Avatar, Text, Button, IconButton } from 'react-native-paper';
+import * as ImagePicker from 'expo-image-picker';
+import { deleteUser } from 'firebase/auth'; // Firebase function to delete user
+import { auth } from '../../constants/FireBaseConfig'; // Your Firebase auth configuration
+
+const LifestyleScreen = ({ navigation }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  
+
+  const [profileInfo, setProfileInfo] = useState({
+    // Lifestyle
+    Username: '',
+    DietType: 'Vegetarian',
+    MarialStatus:'Single',
+    DominantFoot: 'Right',
+    DominantHand: 'Left',
+    ExcersiseFrequency: 'Daily',
+    SelfEsteem: 'High',
+    ScreenTime: '4 Hours',
+    SleepHours: '7 Hours',
+    Notes: '....',
+    smokes: false,
+    drinksAlcohol: false,
+    Avatar: 'https://via.placeholder.com/100'
+   
+
+    
+  });
+
+>>>>>>> 987bae99e089772ab3901f8f0f7f6ee659d25609
   const handleInputChange = (key, value) => {
     setProfileInfo({ ...profileInfo, [key]: value });
   };
 
+<<<<<<< HEAD
   const saveChanges = async () => {
     try {
       const userId = auth.currentUser.uid; // Get the current user's ID
@@ -61,6 +96,9 @@ const LifestyleScreen = ({ navigation }) => {
       Alert.alert('Error', 'Failed to update lifestyle information. Please try again.');
     }
   };
+=======
+  
+>>>>>>> 987bae99e089772ab3901f8f0f7f6ee659d25609
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -81,8 +119,15 @@ const LifestyleScreen = ({ navigation }) => {
     }
   };
 
+<<<<<<< HEAD
   return (
     <ScrollView contentContainerStyle={styles.container}>
+=======
+
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+        
+>>>>>>> 987bae99e089772ab3901f8f0f7f6ee659d25609
       {/* Avatar Section */}
       <View style={styles.avatarContainer}>
         <Avatar.Image size={100} source={{ uri: profileInfo.Avatar }} />
@@ -99,7 +144,11 @@ const LifestyleScreen = ({ navigation }) => {
       {/* Personal Information */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Lifestyle Information</Text>
+<<<<<<< HEAD
         {['dietType', 'maritalStatus', 'dominantFoot', 'dominantHand', 'excerciseFrequency', 'selfEsteem', 'screenTime', 'sleepHours', 'notes'].map((field) => (
+=======
+        {['DietType', 'MarialStatus', 'DominantFoot', 'DominantHand','ExcersiseFrequency', 'SelfEsteem',  'ScreenTime', 'SleepHours', 'Notes'].map((field) => (
+>>>>>>> 987bae99e089772ab3901f8f0f7f6ee659d25609
           <View style={styles.fieldContainer} key={field}>
             <Text style={styles.label}>{field.replace(/([A-Z])/g, ' $1')}</Text>
             <TextInput
@@ -126,11 +175,16 @@ const LifestyleScreen = ({ navigation }) => {
         ))}
       </View>
 
+<<<<<<< HEAD
       {/* Edit and Save Buttons */}
+=======
+      {/* Edit */}
+>>>>>>> 987bae99e089772ab3901f8f0f7f6ee659d25609
       <View style={styles.buttonContainer}>
         <Button
           mode="contained"
           style={styles.button}
+<<<<<<< HEAD
           onPress={() => {
             if (isEditing) {
               saveChanges();
@@ -138,6 +192,9 @@ const LifestyleScreen = ({ navigation }) => {
               setIsEditing(true);
             }
           }}
+=======
+          onPress={() => setIsEditing(!isEditing)}
+>>>>>>> 987bae99e089772ab3901f8f0f7f6ee659d25609
         >
           {isEditing ? 'Save Changes' : 'Edit Profile'}
         </Button>
@@ -197,6 +254,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     backgroundColor: '#2260FF',
   },
+<<<<<<< HEAD
 });
 
 export default LifestyleScreen;
+=======
+  deleteButton: {
+    backgroundColor: '#FF5733',
+  },
+});
+
+export default LifestyleScreen;
+>>>>>>> 987bae99e089772ab3901f8f0f7f6ee659d25609
