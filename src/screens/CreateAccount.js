@@ -3,10 +3,11 @@ import { View, StyleSheet, TouchableOpacity, ScrollView, Text, ActivityIndicator
 import { TextInput, Button, HelperText, IconButton } from 'react-native-paper';
 import CountryPicker from 'react-native-country-picker-modal';
 import { createUserWithEmailAndPassword, googleSignIn, auth } from '../constants/FireBaseConfig';
+import Colors from '../constants/Colors'
+
 
 const CreateAccount = ({ navigation }) => {
   // State management
-  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -21,7 +22,6 @@ const CreateAccount = ({ navigation }) => {
   // Validation logic
   const validateFields = () => {
     const newErrors = {};
-    if (!fullName) newErrors.fullName = 'Full Name is required';
     if (!email || !/^\S+@\S+\.\S+$/.test(email)) newErrors.email = 'Enter a valid email address';
     if (!password || password.length < 8) newErrors.password = 'Password must be at least 8 characters';
     if (password !== confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
@@ -48,7 +48,6 @@ const CreateAccount = ({ navigation }) => {
         // Pass user data (email, full name) to next screen
         navigation.navigate('UserDataScreen', {
           email,
-          fullName,
           mobileNumber,
           birthDate,
           countryCode,
@@ -287,7 +286,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   socialIcon: {
-    backgroundColor: '#9BBFFF',
+    backgroundColor: Colors.white,
     marginHorizontal: 10,
     borderRadius: 50,
   },
@@ -321,7 +320,7 @@ const styles = StyleSheet.create({
   
   phoneInput: {
     flex: 1,
-    backgroundColor: '#D5E9FF',
+    backgroundColor: '#ffff',
     paddingVertical: 4,  
     paddingLeft: 6,
     borderRadius: 15, 

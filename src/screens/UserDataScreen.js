@@ -28,7 +28,6 @@ const UserDataScreen = ({ navigation }) => {
     alcoholConsumption: false,
     smokingStatus: false,
     sleepHours: 0,
-    smokes: false
   });
 
   const [medicalHistoryData, setMedicalHistoryData] = useState({
@@ -89,7 +88,6 @@ const UserDataScreen = ({ navigation }) => {
           alcoholConsumption: lifestyleData.alcoholConsumption,
           smokingStatus: lifestyleData.smokingStatus,
           sleepHours: lifestyleData.sleepHours,
-          smokes: lifestyleData.smokes,
         });
   
         // Save medical history data to the 'medicalHistory' collection
@@ -146,6 +144,13 @@ const UserDataScreen = ({ navigation }) => {
           <View style={styles.stageContainer}>
             <Text style={styles.stageHeader}>Lifestyle and Personal Information</Text>
 
+            <TextInput
+              label="Full Name"
+              value={userData.name} // Use userData.name here
+              onChangeText={(text) => handleInputChange('userData', 'name', text)} // Update the name field in userData
+              style={styles.input}
+              placeholder="Enter your full name"
+            />
             <TextInput
               label="Gender"
               value={lifestyleData.gender}

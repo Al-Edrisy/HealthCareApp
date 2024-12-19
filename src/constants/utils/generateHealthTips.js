@@ -1,117 +1,123 @@
-// Import Firestore functions
-import { fetchDocumentById, updateDocument } from '../firebaseFunctions';
-import axios from 'axios'; // For making HTTP requests
+import moment from 'moment';
+import axios from 'axios'; // Import axios
+import { fetchDocumentById } from '../firebaseFunctions'; // Firebase helper functions
+import { getAuth } from 'firebase/auth';
+import { getFirestore, collection, doc, getDoc, setDoc } from 'firebase/firestore';
 
-// Configuration for OpenAI API
-const config = {
-  OPENAI_API_KEY: "",
-};
+// Initialize Firebase services
+const auth = getAuth();
+const firestore = getFirestore();
 
-const generateHealthTips = async (userId) => {
+// OpenAI API key
+const OPENAI_API_KEY = ''
+
+const generateHealthTips = async () => {
   try {
-    // Fetch user-related data from Firestore
-    const [userData, lifestyleData, medicalHistoryData] = await Promise.all([
-      fetchDocumentById('users', userId),
-      fetchDocumentById('lifestyle', userId),
-      fetchDocumentById('medicalHistory', userId),
-    ]);
-
-    // Log the fetched data
-    //console.log('Fetched User Data:', userData);
-    //console.log('Fetched Lifestyle Data:', lifestyleData);
-    //console.log('Fetched Medical History Data:', medicalHistoryData);
-
-    // Determine today's date (formatted as YYYY-MM-DD)
-    const today = new Date().toISOString().split('T')[0];
-
-    // Check if health tips already exist for today
-    const healthTipsDoc = await fetchDocumentById('tips', userId);
-    if (healthTipsDoc && healthTipsDoc.date === today) {
-      console.log('Existing health tips found for today:', healthTipsDoc);
-      return healthTipsDoc; // Return existing tips
+    // Check if a user is logged in
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('No user is currently logged in.');
     }
+
+    const userId = user.uid;
+    const today = moment().format('YYYY-MM-DD'); // Format date as YYYY-MM-DD
+    const tipsCollection = collection(firestore, 'tips');
+    const tipsDoc = doc(tipsCollection, userId);
+    const tipsSnapshot = await getDoc(tipsDoc);
+
+    // Check if tips for today already exist
+    if (tipsSnapshot.exists()) {
+      const tipsData = tipsSnapshot.data();
+      if (tipsData.date === today) {
+        console.log('Health tips for today already exist.');
+        return tipsData; // Return existing tips
+      }
+    }
+
+    // Fetch user-related data
+    const userData = await fetchDocumentById('users', userId);
+    const lifestyleData = await fetchDocumentById('lifestyle', userId);
+    const medicalHistoryData = await fetchDocumentById('medicalHistory', userId);
+
+    if (!userData && !lifestyleData && !medicalHistoryData) {
+      throw new Error('No user data available to generate health tips.');
+    }
+    
 
     // Prepare the prompt for OpenAI API
     const prompt = `
-      Based on the following user data, lifestyle, and medical history, generate 7 personalized health tips:
-      User Data: ${JSON.stringify(userData, null, 2)}
-      Lifestyle Data: ${JSON.stringify(lifestyleData, null, 2)}
-      Medical History Data: ${JSON.stringify(medicalHistoryData, null, 2)}
-      Each tip should include:
+    Based on the following user details, generate personalized health tips in strict JSON format:
+    - User Details: ${JSON.stringify(userData)}
+    - Lifestyle: ${JSON.stringify(lifestyleData)}
+    - Medical History: ${JSON.stringify(medicalHistoryData)}
+  
+    Format the output as an array of objects with the following fields:
+    [
       {
-        "title": "Health Tip #1",
-        "content": "Detailed health tip content",
-        "category": "Tip Category"
-      }
-    `;
+        "title": "Short title for the tip",
+        "content": "Detailed description of the tip",
+        "category": "Relevant category (e.g., nutrition, exercise, mental health)"
+      },
+      ...
+    ]
+  `;
+  
 
-    console.log('Requesting OpenAI API for health tips...');
-    
-    // Make a request to OpenAI API
-    const openAiResponse = await axios.post(
-      'https://api.openai.com/v1/completions',
+    // Use axios to make the OpenAI API request
+    const gptResponse = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
       {
         model: 'gpt-3.5-turbo',
-        prompt,
-        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 500,
         temperature: 0.7,
-        n: 1, // Request one completion
       },
       {
         headers: {
-          'Authorization': `Bearer ${config.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
         },
       }
     );
 
-    // Log the raw response to debug
-    console.log('OpenAI API Response:', openAiResponse.data);
-
-    // Check the OpenAI response
-    const { choices } = openAiResponse.data;
-    if (!choices || choices.length === 0) {
-      throw new Error('OpenAI did not return valid health tips.');
+    const responseText = gptResponse.data.choices[0]?.message?.content?.trim();
+    if (!responseText) {
+      throw new Error('Invalid response from OpenAI API.');
     }
 
-    // Parse OpenAI response into structured tips
+    // Parse the response into tips
     let generatedTips;
     try {
-      generatedTips = JSON.parse(choices[0].text.trim());
+      generatedTips = JSON.parse(responseText);
     } catch (parseError) {
-      console.error('Error parsing OpenAI response:', parseError);
-      throw new Error('Failed to parse health tips.');
+      throw new Error('Failed to parse OpenAI response. Ensure the response is valid JSON.');
     }
 
-    // Validate the parsed tips (ensure it's an array with at least one tip)
-    if (!Array.isArray(generatedTips) || generatedTips.length === 0) {
-      console.error('Invalid health tips format:', generatedTips);
-      throw new Error('Generated health tips are in an invalid format.');
+    // Validate and structure tips
+    if (!Array.isArray(generatedTips)) {
+      throw new Error('Generated tips are not in the expected array format.');
     }
 
-    // Create a new health tips document
-    const newHealthTips = {
+    const healthTips = {
       date: today,
       userId,
-      tips: generatedTips,
+      tips: generatedTips.map((tip, index) => ({
+        id: `tip-${index + 1}`,
+        title: tip.title || `Tip ${index + 1}`,
+        content: tip.content || '',
+        category: tip.category || 'general',
+      })),
     };
 
-    // Update Firestore with the new health tips
-    await updateDocument('tips', userId, newHealthTips);
+    // Save the generated tips to Firestore
+    await setDoc(tipsDoc, healthTips);
 
-    console.log('Generated and saved new health tips:', newHealthTips);
-    return newHealthTips;
+    console.log('Health tips generated and saved successfully:', healthTips);
+    return healthTips;
   } catch (error) {
-    console.error('Error generating health tips:', error);
-
-    // Provide specific guidance for common errors
-    if (axios.isAxiosError(error)) {
-      console.error('HTTP error while accessing OpenAI API:', error.response?.data || error.message);
-    } else if (error.code === 'permission-denied') {
-      console.error('Firestore permission error: Check your Firestore rules.');
-    } else {
-      console.error('Unexpected error:', error.message || error);
-    }
-
-    throw new Error('Failed to generate health tips. Please try again later.');
+    console.error('Error generating health tips:', error.message);
+    throw error; // Ensure the error propagates for higher-level handling
   }
 };
+
+export default generateHealthTips;

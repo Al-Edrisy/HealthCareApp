@@ -1,93 +1,126 @@
-import React, { useState } from 'react';
-import {StyleSheet, View, TextInput, Alert, ScrollView, Switch, TouchableOpacity,} from 'react-native';
-import { Avatar, Text, Button, IconButton } from 'react-native-paper';
-import * as ImagePicker from 'expo-image-picker';
-import { deleteUser } from 'firebase/auth'; // Firebase function to delete user
-import { auth } from '../../constants/FireBaseConfig'; // Your Firebase auth configuration
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, Alert, TextInput, Switch } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import Icon from "react-native-vector-icons/Ionicons";
+import { Button } from "react-native-paper";
+import { auth } from "../../constants/FireBaseConfig";
+import { fetchDocumentById, updateDocument } from "../../constants/firebaseFunctions";
 
-const UserInformationScreen = ({ navigation }) => {
-  const [isEditing, setIsEditing] = useState(false);
+const getRandomColor = () => {
+  const colors = ['#FFB6C1', '#FFC0CB', '#DC143C', '#FF69B4', '#FFA07A', '#FFD700', '#ADFF2F', '#20B2AA', '#87CEFA'];
+  return colors[Math.floor(Math.random() * colors.length)];
+};
 
-  const [profileInfo, setProfileInfo] = useState({
-    // Personal Information
-    Name: 'S. Adnan',
-    Gender: 'Male',
-    Age: '24',
-    Email: 'test@gmail.com',
-    DateOfBirth: '09-03-2000',
-    Phone: '+123 456 7890',
-    Height: '180 cm',
-    Weight: '65 kg',
-    Avatar: 'https://via.placeholder.com/100', // Default avatar
-
-    // Medical History
-    userId: '123456',
-
-    
+const ProfileScreen = () => {
+  const navigation = useNavigation();
+  const [userData, setUserData] = useState({
+    name: "",
+    email: "",
+    phoneNumber: "",
+    age: 0,
+    gender: "",
+    height: 0,
+    weight: 0,
+    profilePic: "",
+    dateOfBirth: "",
   });
+  const [isEditing, setIsEditing] = useState(false);
+  const [avatarColor, setAvatarColor] = useState(getRandomColor());
+  const [loading, setLoading] = useState(true);
 
-  const handleInputChange = (key, value) => {
-    setProfileInfo({ ...profileInfo, [key]: value });
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          const userData = await fetchDocumentById("users", user.uid);
+          setUserData(userData || {}); // Set user data
+          setAvatarColor(getRandomColor()); // Set a random background color for the avatar
+        } else {
+          Alert.alert("Error", "No user is currently logged in.");
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+        Alert.alert("Error", "Failed to load user profile. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  const handleInputChange = (field, value) => {
+    setUserData({ ...userData, [field]: value });
   };
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission denied', 'We need access to your photos to set a profile picture.');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setProfileInfo({ ...profileInfo, Avatar: result.assets[0].uri });
+  const saveChanges = async () => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await updateDocument("users", user.uid, userData); // Save changes to Firestore
+        Alert.alert("Success", "Profile updated successfully!");
+        setIsEditing(false);
+      }
+    } catch (error) {
+      console.error("Error saving profile changes:", error);
+      Alert.alert("Error", "Failed to save changes. Please try again.");
     }
   };
-
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Avatar Section */}
-      <View style={styles.avatarContainer}>
-        <Avatar.Image size={100} source={{ uri: profileInfo.Avatar }} />
-        {isEditing && (
-          <IconButton
-            icon="camera"
-            size={20}
-            style={styles.cameraButton}
-            onPress={pickImage}
-          />
+      {/* Profile Info */}
+      <View style={styles.profileContainer}>
+        {userData.profilePic ? (
+          <Image source={{ uri: userData.profilePic }} style={styles.avatarImage} />
+        ) : (
+          <View style={[styles.avatarPlaceholder, { backgroundColor: avatarColor }]}>
+            <Text style={styles.avatarText}>
+              {userData.name ? userData.name.charAt(0).toUpperCase() : "A"}
+            </Text>
+          </View>
         )}
+        <Text style={styles.profileName}>{loading ? "Loading..." : userData.name || "User"}</Text>
       </View>
 
-      {/* Personal Information */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Personal Information</Text>
-        {['Name', 'Gender', 'Age', 'DateOfBirth', 'Email', 'Phone', 'Height', 'Weight'].map((field) => (
-          <View style={styles.fieldContainer} key={field}>
-            <Text style={styles.label}>{field.replace(/([A-Z])/g, ' $1')}</Text>
-            <TextInput
-              style={styles.input}
-              editable={isEditing}
-              value={profileInfo[field]}
-              onChangeText={(text) => handleInputChange(field, text)}
-            />
+      {/* Editable Profile Fields */}
+      <View style={styles.formContainer}>
+        <Text style={styles.sectionTitle}>Profile Information</Text>
+
+        {/* Editable Fields */}
+        {["name", "email", "phoneNumber", "age", "gender", "height", "weight"].map((field) => (
+          <View style={styles.inputContainer} key={field}>
+            <Text style={styles.label}>{field.charAt(0).toUpperCase() + field.slice(1)}</Text>
+            {field === "age" || field === "height" || field === "weight" ? (
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                value={String(userData[field])}
+                editable={isEditing}
+                onChangeText={(text) => handleInputChange(field, text)}
+              />
+            ) : field === "gender" ? (
+              <TextInput
+                style={styles.input}
+                value={userData[field]}
+                editable={isEditing}
+                onChangeText={(text) => handleInputChange(field, text)}
+              />
+            ) : (
+              <TextInput
+                style={styles.input}
+                value={userData[field]}
+                editable={isEditing}
+                onChangeText={(text) => handleInputChange(field, text)}
+              />
+            )}
           </View>
         ))}
-      </View>
 
-      <View style={styles.buttonContainer}>
-        <Button
-          mode="contained"
-          style={styles.button}
-          onPress={() => setIsEditing(!isEditing)}
-        >
-          {isEditing ? 'Save Changes' : 'Edit Profile'}
+        {/* Save Changes Button */}
+        <Button mode="contained" style={styles.button} onPress={saveChanges}>
+          {isEditing ? "Save Changes" : "Edit Profile"}
         </Button>
       </View>
     </ScrollView>
@@ -97,57 +130,64 @@ const UserInformationScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    alignItems: 'center',
+    backgroundColor: "#FFF",
   },
-  avatarContainer: {
-    position: 'relative',
+  profileContainer: {
+    alignItems: "center",
+    marginBottom: 20,
   },
-  cameraButton: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#ddd',
+  avatarImage: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    marginBottom: 10,
   },
-  section: {
-    width: '100%',
+  avatarPlaceholder: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  avatarText: {
+    fontSize: 48,
+    fontWeight: "600",
+    color: "#FFF",
+  },
+  profileName: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#333",
+  },
+  formContainer: {
     marginTop: 20,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "600",
+    color: "#4A90E2",
     marginBottom: 10,
   },
-  fieldContainer: {
-    marginBottom: 10,
+  inputContainer: {
+    marginBottom: 15,
   },
   label: {
-    fontWeight: 'bold',
-    color: '#2260FF',
-    fontSize: 17,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
   },
   input: {
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    paddingBottom: 5,
+    borderBottomColor: "#ccc",
+    paddingVertical: 5,
     marginTop: 5,
-  },
-  switchContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  buttonContainer: {
-    marginTop: 20,
-    width: '100%',
+    fontSize: 16,
   },
   button: {
-    marginBottom: 10,
-    backgroundColor: '#2260FF',
-  },
-  deleteButton: {
-    backgroundColor: '#FF5733',
+    marginTop: 20,
+    backgroundColor: "#4A90E2",
   },
 });
 
-export default UserInformationScreen;
+export default ProfileScreen;

@@ -1,109 +1,76 @@
-<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
-import {
-  StyleSheet,
-  View,
-  TextInput,
-  Alert,
-  ScrollView,
-  Switch,
-} from 'react-native';
+import { StyleSheet, View, TextInput, Alert, ScrollView, Switch } from 'react-native';
 import { Avatar, Text, Button, IconButton } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import { fetchDocumentById, updateDocument } from '../../constants/firebaseFunctions'; // Firebase functions
 import { auth } from '../../constants/FireBaseConfig'; // Firebase Auth configuration
 
+const getRandomColor = () => {
+  const colors = ['#FFB6C1', '#FFC0CB', '#DC143C', '#FF69B4', '#FFA07A', '#FFD700', '#ADFF2F', '#20B2AA', '#87CEFA'];
+  return colors[Math.floor(Math.random() * colors.length)];
+};
+
 const LifestyleScreen = ({ navigation }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [avatarColor, setAvatarColor] = useState(getRandomColor());
   const [profileInfo, setProfileInfo] = useState({
-    
-    dietType: 'Vegetarian',
-    maritalStatus: 'Single',
-    dominantFoot: 'Right',
-    dominantHand: 'Left',
-    excerciseFrequency: 'Daily',
-    selfEsteem: 'High',
-    screenTime: '4 Hours',
-    sleepHours: '0',
-    notes: '....',
-    smokes: false,
+    alcoholConsumption: false,
+    dietType: '',
+    dominantFoot: '',
+    dominantHand: '',
     drinksAlcohol: false,
-    Avatar: 'https://via.placeholder.com/100',
+    exerciseFrequency: '',
+    maritalStatus: '',
+    screenTime: 0,
+    selfEsteem: '',
+    sleepHours: 0,
+    smokingStatus: false,
+    avatar: 'https://via.placeholder.com/100', // Default avatar URL
   });
 
+  // Fetch user name and lifestyle data on screen load
   useEffect(() => {
-    const fetchLifestyleData = async () => {
+    const fetchUserData = async () => {
       try {
-        const userId = auth.currentUser.uid; // Get the current user's ID
-        const lifestyleData = await fetchDocumentById('lifestyle', userId);
-        if (lifestyleData) {
-          setProfileInfo(lifestyleData);
+        const userId = auth.currentUser.uid;
+        const userDoc = await fetchDocumentById('users', userId); // Fetch user details
+        const lifestyleDoc = await fetchDocumentById('lifestyle', userId); // Fetch lifestyle data
+
+        if (userDoc) {
+          setUserName(userDoc.name || 'User'); // Fallback to 'User' if name is unavailable
+        }
+        if (lifestyleDoc) {
+          setProfileInfo(lifestyleDoc);
         }
       } catch (error) {
-        console.error('Error fetching lifestyle data:', error);
+        console.error('Error fetching user data:', error);
       }
     };
 
-    fetchLifestyleData();
+    fetchUserData();
   }, []);
 
-=======
-import React, { useState } from 'react';
-import {StyleSheet, View, TextInput, Alert, ScrollView, Switch, TouchableOpacity,} from 'react-native';
-import { Avatar, Text, Button, IconButton } from 'react-native-paper';
-import * as ImagePicker from 'expo-image-picker';
-import { deleteUser } from 'firebase/auth'; // Firebase function to delete user
-import { auth } from '../../constants/FireBaseConfig'; // Your Firebase auth configuration
-
-const LifestyleScreen = ({ navigation }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  
-
-  const [profileInfo, setProfileInfo] = useState({
-    // Lifestyle
-    Username: '',
-    DietType: 'Vegetarian',
-    MarialStatus:'Single',
-    DominantFoot: 'Right',
-    DominantHand: 'Left',
-    ExcersiseFrequency: 'Daily',
-    SelfEsteem: 'High',
-    ScreenTime: '4 Hours',
-    SleepHours: '7 Hours',
-    Notes: '....',
-    smokes: false,
-    drinksAlcohol: false,
-    Avatar: 'https://via.placeholder.com/100'
-   
-
-    
-  });
-
->>>>>>> 987bae99e089772ab3901f8f0f7f6ee659d25609
   const handleInputChange = (key, value) => {
     setProfileInfo({ ...profileInfo, [key]: value });
   };
 
-<<<<<<< HEAD
   const saveChanges = async () => {
     try {
-      const userId = auth.currentUser.uid; // Get the current user's ID
-      await updateDocument('lifestyle', userId, profileInfo); // Update Firestore document
-      Alert.alert('Success', 'Lifestyle information updated successfully!');
+      const userId = auth.currentUser.uid;
+      await updateDocument('lifestyle', userId, profileInfo); // Save changes to Firestore
+      Alert.alert('Success', 'Lifestyle data updated successfully!');
       setIsEditing(false); // Exit edit mode
     } catch (error) {
       console.error('Error updating lifestyle data:', error);
-      Alert.alert('Error', 'Failed to update lifestyle information. Please try again.');
+      Alert.alert('Error', 'Failed to update lifestyle data. Please try again.');
     }
   };
-=======
-  
->>>>>>> 987bae99e089772ab3901f8f0f7f6ee659d25609
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission denied', 'We need access to your photos to set a profile picture.');
+      Alert.alert('Permission Denied', 'We need access to your photos to set a profile picture.');
       return;
     }
 
@@ -115,22 +82,23 @@ const LifestyleScreen = ({ navigation }) => {
     });
 
     if (!result.canceled) {
-      setProfileInfo({ ...profileInfo, Avatar: result.assets[0].uri });
+      setProfileInfo({ ...profileInfo, avatar: result.assets[0].uri });
     }
   };
 
-<<<<<<< HEAD
   return (
     <ScrollView contentContainerStyle={styles.container}>
-=======
-
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-        
->>>>>>> 987bae99e089772ab3901f8f0f7f6ee659d25609
       {/* Avatar Section */}
       <View style={styles.avatarContainer}>
-        <Avatar.Image size={100} source={{ uri: profileInfo.Avatar }} />
+        {profileInfo.avatar ? (
+          <Avatar.Image size={100} source={{ uri: profileInfo.avatar }} />
+        ) : (
+          <Avatar.Text
+            size={100}
+            label={userName.charAt(0)}
+            style={{ backgroundColor: avatarColor }}
+          />
+        )}
         {isEditing && (
           <IconButton
             icon="camera"
@@ -139,16 +107,22 @@ const LifestyleScreen = ({ navigation }) => {
             onPress={pickImage}
           />
         )}
+        <Text style={styles.userName}>{userName}</Text>
       </View>
 
-      {/* Personal Information */}
+      {/* Lifestyle Information */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Lifestyle Information</Text>
-<<<<<<< HEAD
-        {['dietType', 'maritalStatus', 'dominantFoot', 'dominantHand', 'excerciseFrequency', 'selfEsteem', 'screenTime', 'sleepHours', 'notes'].map((field) => (
-=======
-        {['DietType', 'MarialStatus', 'DominantFoot', 'DominantHand','ExcersiseFrequency', 'SelfEsteem',  'ScreenTime', 'SleepHours', 'Notes'].map((field) => (
->>>>>>> 987bae99e089772ab3901f8f0f7f6ee659d25609
+
+        {/* Editable Fields */}
+        {[
+          'dietType',
+          'dominantFoot',
+          'dominantHand',
+          'exerciseFrequency',
+          'maritalStatus',
+          'selfEsteem',
+        ].map((field) => (
           <View style={styles.fieldContainer} key={field}>
             <Text style={styles.label}>{field.replace(/([A-Z])/g, ' $1')}</Text>
             <TextInput
@@ -160,12 +134,24 @@ const LifestyleScreen = ({ navigation }) => {
           </View>
         ))}
 
-        {/* Smokes and Drinks */}
-        {['smokes', 'drinksAlcohol'].map((field) => (
+        {/* Numeric Fields */}
+        {['screenTime', 'sleepHours'].map((field) => (
+          <View style={styles.fieldContainer} key={field}>
+            <Text style={styles.label}>{field.replace(/([A-Z])/g, ' $1')}</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              editable={isEditing}
+              value={String(profileInfo[field])}
+              onChangeText={(text) => handleInputChange(field, Number(text))}
+            />
+          </View>
+        ))}
+
+        {/* Boolean Fields */}
+        {['smokingStatus', 'drinksAlcohol', 'alcoholConsumption'].map((field) => (
           <View style={styles.switchContainer} key={field}>
-            <Text style={styles.label}>
-              {field === 'smokes' ? 'Smokes?' : 'Drinks Alcohol?'}
-            </Text>
+            <Text style={styles.label}>{field.replace(/([A-Z])/g, ' $1')}</Text>
             <Switch
               value={profileInfo[field]}
               onValueChange={(value) => handleInputChange(field, value)}
@@ -175,16 +161,11 @@ const LifestyleScreen = ({ navigation }) => {
         ))}
       </View>
 
-<<<<<<< HEAD
       {/* Edit and Save Buttons */}
-=======
-      {/* Edit */}
->>>>>>> 987bae99e089772ab3901f8f0f7f6ee659d25609
       <View style={styles.buttonContainer}>
         <Button
           mode="contained"
           style={styles.button}
-<<<<<<< HEAD
           onPress={() => {
             if (isEditing) {
               saveChanges();
@@ -192,9 +173,6 @@ const LifestyleScreen = ({ navigation }) => {
               setIsEditing(true);
             }
           }}
-=======
-          onPress={() => setIsEditing(!isEditing)}
->>>>>>> 987bae99e089772ab3901f8f0f7f6ee659d25609
         >
           {isEditing ? 'Save Changes' : 'Edit Profile'}
         </Button>
@@ -210,12 +188,19 @@ const styles = StyleSheet.create({
   },
   avatarContainer: {
     position: 'relative',
+    alignItems: 'center',
   },
   cameraButton: {
     position: 'absolute',
     bottom: 0,
-    right: 0,
+    right: -10,
     backgroundColor: '#ddd',
+  },
+  userName: {
+    marginTop: 10,
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   section: {
     width: '100%',
@@ -254,15 +239,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     backgroundColor: '#2260FF',
   },
-<<<<<<< HEAD
 });
 
 export default LifestyleScreen;
-=======
-  deleteButton: {
-    backgroundColor: '#FF5733',
-  },
-});
-
-export default LifestyleScreen;
->>>>>>> 987bae99e089772ab3901f8f0f7f6ee659d25609

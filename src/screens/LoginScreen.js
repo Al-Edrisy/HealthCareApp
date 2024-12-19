@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   socialIcon: {
-    backgroundColor: Colors.primaryColor,
+    backgroundColor: Colors.white,
     marginHorizontal: 10,
     borderRadius: 50,
   },

@@ -5,5 +5,5 @@ export default {
     cards: '#D2DDFA',
     //primaryColor: '#5D73E6',
     primaryColor: '#2260FF',
-    
+    white: "#E8F9FD",
     }
